@@ -1,84 +1,80 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.numeric_std.ALL;
 
-entity FSM_FIR is
+ENTITY FSM_FIR IS
 
-  port(
-    clk, rst                                                            : in std_logic;
-    valid, processingDone                                               : in std_logic;
-    filtres_done                                                        : in std_logic;
-    loadShift, initAddress, incAddress, initSum, loadSum, loadOutput    : out std_logic
-    );
-end FSM_FIR;
+	PORT (
+		clk, rst : IN std_logic;
+		valid, processingDone : IN std_logic;
+		filtres_done : IN std_logic;
+		loadShift, initAddress, incAddress, initSum, loadSum, loadOutput : OUT std_logic
+	);
+END FSM_FIR;
 
-architecture arch_FSM_FIR of FSM_FIR is
+ARCHITECTURE arch_FSM_FIR OF FSM_FIR IS
 
-  type FSM_state is (WAIT_SAMPLE, STORE, PROCESSING_LOOP, OUTPUT, WAIT_END_SAMPLE);
+	TYPE FSM_state IS (WAIT_SAMPLE, STORE, PROCESSING_LOOP, OUTPUT, WAIT_END_SAMPLE);
 
-  signal current_state, next_state : FSM_state := WAIT_SAMPLE;
-  signal aux_selADDSUB : std_logic_vector(1 downto 0);
+	SIGNAL current_state, next_state : FSM_state := WAIT_SAMPLE;
+	SIGNAL aux_selADDSUB : std_logic_vector(1 DOWNTO 0);
+BEGIN
+	curr_state : PROCESS (clk, rst) IS
+	BEGIN
+		IF (rst = '1') THEN
+			current_state <= WAIT_SAMPLE;
+		ELSIF (RISING_EDGE(clk)) THEN
+			current_state <= next_state;
+		END IF;
+	END PROCESS curr_state;
 
+	nxt_state : PROCESS (current_state, valid, processingDone) IS
+	BEGIN
+		loadShift <= '0';
+		initAddress <= '0';
+		incAddress <= '0';
+		initSum <= '0';
+		loadSum <= '0';
+		loadOutput <= '0';
 
-begin
-  curr_state : process(clk,rst) is
-    begin
-      if (rst = '1') then
-        current_state <= WAIT_SAMPLE;
-      elsif(RISING_EDGE(clk)) then
-        current_state <= next_state;
-      end if;
-    end process curr_state;
+		CASE current_state IS
+			WHEN WAIT_SAMPLE => 
+				IF valid = '1' THEN
+					initSum <= '1';
+					initAddress <= '1';
+					next_state <= STORE;
+				ELSE
+					next_state <= WAIT_SAMPLE;
+				END IF;
 
-  nxt_state : process(current_state, valid, processingDone) is
-    begin
-        loadShift <= '0';
-        initAddress <= '0';
-        incAddress <= '0';
-        initSum <= '0';
-        loadSum <= '0';
-        loadOutput <= '0';
+			WHEN STORE => 
+				loadShift <= '1';
+				next_state <= PROCESSING_LOOP;
 
-        case current_state is
-            when WAIT_SAMPLE =>
-                if valid = '1' then
-                    initSum <= '1';
-                    initAddress <= '1';
-                    next_state <= STORE;
-                else
-                   next_state <= WAIT_SAMPLE;
-                end if;
+			WHEN PROCESSING_LOOP => 
+				IF processingDone = '0' THEN
+					incAddress <= '1';
+					loadSum <= '1';
+					next_state <= PROCESSING_LOOP;
+				ELSE
+					next_state <= OUTPUT;
+				END IF;
 
-            when STORE =>
-                loadShift  <= '1';
-                next_state <= PROCESSING_LOOP;
+			WHEN OUTPUT => 
+				loadOutput <= '1';
+				IF (filtres_done = '1') THEN
+					next_state <= WAIT_END_SAMPLE;
+				ELSE
+					next_state <= STORE;
+				END IF;
 
-            when PROCESSING_LOOP =>
-                if processingDone = '0' then
-                    incAddress <= '1';
-                    loadSum <= '1';
-                    next_state <= PROCESSING_LOOP;
-                else
-                    next_state <= OUTPUT;
-                end if;
+			WHEN WAIT_END_SAMPLE => 
+				IF valid = '0' THEN
+					next_state <= WAIT_SAMPLE;
+				ELSE
+					next_state <= WAIT_END_SAMPLE;
+				END IF;
+		END CASE;
 
-            when OUTPUT =>
-                loadOutput <= '1';
-                if(filtres_done = '1') then
-                  next_state  <= WAIT_END_SAMPLE;
-                else
-                  next_state  <= STORE;
-                end if;
-
-            when WAIT_END_SAMPLE =>
-                if valid = '0' then
-                    next_state <= WAIT_SAMPLE;
-                else
-                    next_state <= WAIT_END_SAMPLE;
-                end if;
-        end case;
-
-    end process nxt_state;
-
-
-end architecture;
+	END PROCESS nxt_state;
+END ARCHITECTURE;

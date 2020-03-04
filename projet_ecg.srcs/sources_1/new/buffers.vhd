@@ -36,9 +36,9 @@ ENTITY buffers IS
  
 		N : INTEGER := 24;
 		address_width : INTEGER := 7;
-		buffer_fir_width : INTEGER;
-		buffer_iir_width : INTEGER;
-		buffer_fir2_width : INTEGER
+		buffer_fir_width : INTEGER := 128;
+		buffer_iir_width : INTEGER := 3;
+		buffer_fir2_width : INTEGER := 109
 	);
 	PORT (
 		clk : IN std_logic;
@@ -78,25 +78,34 @@ BEGIN
 			s_address <= s_address + 1;
 		END IF;
  
-		IF (s_address = (2 ** address_width - 1)) THEN
-			processingDone <= '1';
-		END IF;
 	END PROCESS address_generator;
 
 	buffer_selector : PROCESS (selector) IS
 	BEGIN
 		IF (unsigned(selector) = 0) THEN
 			v_value <= buffer_fir(to_integer(s_address));
-			h_coef <= buffer_fir_coef(to_integer(s_address));
+			h_coef <= buffer_fir_coef(to_integer(s_address));		
+		    IF (s_address = (buffer_fir_width - 1)) THEN
+                processingDone <= '1';
+            END IF;		
 		ELSIF (unsigned(selector) = 1) THEN
 			v_value <= buffer_iir_r(to_integer(s_address));
-			h_coef <= buffer_iir_r_coef(to_integer(s_address));
+			h_coef <= buffer_iir_r_coef(to_integer(s_address));		
+		    IF (s_address = (buffer_iir_width - 1)) THEN
+                processingDone <= '1';
+            END IF;
 		ELSIF (unsigned(selector) = 2) THEN
 			v_value <= buffer_iir(to_integer(s_address));
-			h_coef <= buffer_iir_coef(to_integer(s_address));
+			h_coef <= buffer_iir_coef(to_integer(s_address));	
+		    IF (s_address = (buffer_iir_width - 1)) THEN
+                processingDone <= '1';
+            END IF;
 		ELSIF (unsigned(selector) = 3) THEN
 			v_value <= buffer_fir2(to_integer(s_address));
 			h_coef <= buffer_fir2_coef(to_integer(s_address));
+		    IF (s_address = (buffer_fir2_width - 1)) THEN
+                processingDone <= '1';
+            END IF;
 		END IF;
 	END PROCESS buffer_selector;
 
