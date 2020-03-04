@@ -7,6 +7,7 @@ entity FSM_FIR is
   port(
     clk, rst                                                            : in std_logic;
     valid, processingDone                                               : in std_logic;
+    filtres_done                                                        : in std_logic;
     loadShift, initAddress, incAddress, initSum, loadSum, loadOutput    : out std_logic
     );
 end FSM_FIR;
@@ -37,7 +38,7 @@ begin
         initSum <= '0';
         loadSum <= '0';
         loadOutput <= '0';
-        
+
         case current_state is
             when WAIT_SAMPLE =>
                 if valid = '1' then
@@ -63,7 +64,11 @@ begin
 
             when OUTPUT =>
                 loadOutput <= '1';
-                next_state  <= WAIT_END_SAMPLE;
+                if(filtres_done = '1') then
+                  next_state  <= WAIT_END_SAMPLE;
+                else
+                  next_state  <= STORE;
+                end if;
 
             when WAIT_END_SAMPLE =>
                 if valid = '0' then
