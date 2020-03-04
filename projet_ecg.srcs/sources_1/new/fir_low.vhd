@@ -38,7 +38,7 @@ BEGIN
 		loadOutput <= '0';
 
 		CASE current_state IS
-			WHEN WAIT_SAMPLE => 
+			WHEN WAIT_SAMPLE =>
 				IF valid = '1' THEN
 					initSum <= '1';
 					initAddress <= '1';
@@ -47,11 +47,13 @@ BEGIN
 					next_state <= WAIT_SAMPLE;
 				END IF;
 
-			WHEN STORE => 
+			WHEN STORE =>
 				loadShift <= '1';
 				next_state <= PROCESSING_LOOP;
+				initSum <= '1';
+				initAddress <= '1';
 
-			WHEN PROCESSING_LOOP => 
+			WHEN PROCESSING_LOOP =>
 				IF processingDone = '0' THEN
 					incAddress <= '1';
 					loadSum <= '1';
@@ -60,7 +62,7 @@ BEGIN
 					next_state <= OUTPUT;
 				END IF;
 
-			WHEN OUTPUT => 
+			WHEN OUTPUT =>
 				loadOutput <= '1';
 				IF (filtres_done = '1') THEN
 					next_state <= WAIT_END_SAMPLE;
@@ -68,7 +70,7 @@ BEGIN
 					next_state <= STORE;
 				END IF;
 
-			WHEN WAIT_END_SAMPLE => 
+			WHEN WAIT_END_SAMPLE =>
 				IF valid = '0' THEN
 					next_state <= WAIT_SAMPLE;
 				ELSE
