@@ -43,6 +43,8 @@ ENTITY buffers IS
 	PORT (
 		clk : IN std_logic;
 		incrAddress, initAddress : IN std_logic;
+		inputSample : IN std_logic_vector(N - 1 DOWNTO 0);
+		loadShift : IN std_logic;
 		selector : IN std_logic_vector(selector_width - 1 DOWNTO 0);
 		
 		processingDone : OUT std_logic;
@@ -67,6 +69,21 @@ ARCHITECTURE Behavioral OF buffers IS
  
 	SIGNAL s_address : unsigned(address_width - 1 DOWNTO 0);
  
+    PROCEDURE shiftBuffer(
+        buff : IN t_buffer;
+        inputSample : IN std_logic_vector(N - 1 DOWNTO 0);
+        SIGNAL buffShifted : OUT t_buffer) IS
+        VARIABLE v_buffer : t_buffer(buff'LENGTH-1 DOWNTO 0); 
+    BEGIN
+        FOR i IN 0 TO v_buffer'LENGTH-2 LOOP
+            v_buffer(i+1) := v_buffer(i);
+        END LOOP;        
+        v_buffer(0) := inputSample;
+        
+        buffShifted <= v_buffer;
+    END PROCEDURE;
+ 
+ 
 BEGIN
 	processingDone <= '0';
  
@@ -77,8 +94,24 @@ BEGIN
 		ELSIF (RISING_EDGE(clk) AND incrAddress = '1') THEN
 			s_address <= s_address + 1;
 		END IF;
- 
+
 	END PROCESS address_generator;
+
+    shifter: PROCESS(clk) IS
+    BEGIN
+        IF (RISING_EDGE(clk) AND loadShift = '1') THEN
+            IF (unsigned(selector) = 0) THEN
+                shiftBuffer(buffer_fir, inputSample, buffer_fir);
+            ELSIF (unsigned(selector) = 1) THEN
+                shiftBuffer(buffer_iir_r, inputSample, buffer_iir_r);
+            ELSIF (unsigned(selector) = 2) THEN
+                shiftBuffer(buffer_iir, inputSample, buffer_iir);
+            ELSIF (unsigned(selector) = 3) THEN
+                shiftBuffer(buffer_fir2, inputSample, buffer_fir2);
+            END IF;
+        END IF;        
+	END PROCESS shifter;
+
 
 	buffer_selector : PROCESS (selector) IS
 	BEGIN
