@@ -12,9 +12,9 @@ USE IEEE.math_real.ALL;
 
 ENTITY tb_accumulator IS
 	GENERIC (
-        CONSTANT selector_width : INTEGER := 4;
+        CONSTANT selector_width : INTEGER := 2;
         N : INTEGER := 24;
-        n_out : INTEGER := 24;
+        n_out : INTEGER := 48;
         
         address_width : INTEGER := 7;
         buffer_fir_width : INTEGER := 128;
@@ -28,9 +28,9 @@ ARCHITECTURE testbench OF tb_accumulator IS
 COMPONENT TOP_Op IS
 
 	GENERIC (
-		CONSTANT selector_width : INTEGER := 4;
+		CONSTANT selector_width : INTEGER := 2;
 		N : INTEGER := 24;
-		n_out : INTEGER := 24;
+		n_out : INTEGER := 48;
 		address_width : INTEGER := 7;
 		buffer_fir_width : INTEGER := 128;
 		buffer_iir_width : INTEGER := 3;
@@ -52,7 +52,7 @@ END COMPONENT;
 
     SIGNAL clk: std_logic := '0';
 	SIGNAL incrAddress, initAddress, loadShift : std_logic;
-    SIGNAL selector : std_logic_vector(selector_width - 1 DOWNTO 0);
+    SIGNAL selector : std_logic_vector(selector_width - 1 DOWNTO 0) := (others => '0');
 
     SIGNAL initSum, loadSum, loadOutput : std_logic;
     SIGNAL sumSelect : std_logic;
@@ -82,7 +82,6 @@ BEGIN
             inputSample => inputSample
         );
    
-   clk <= not clk after 7 ns;
    incrAddress <= '0';
    selector <= "00";
   
@@ -95,26 +94,34 @@ BEGIN
    sumSelect <= '0';
    inputSample <= std_logic_vector(to_unsigned(1, N));
    
-   tb: PROCESS(clk) IS
-    VARIABLE   count : INTEGER := 0;
+   clk_gen : PROCESS
    BEGIN
-       IF rising_edge(clk) THEN
-           IF count = 0 THEN
-              initAddress <= '1';
-              initSum <= '1';
-           ELSIF count = 1 THEN
-               initAddress <= '1';
-               initSum <= '1';
-               loadShift <= '1';
-           ELSIF (count > 1 AND processingDone = '0')  THEN
-              incrAddress <= '1';
-              loadSum <= '1';
-           ELSIF (processingDone = '1')  THEN
-                 loadOutput <= '1';
-           END IF;
-          count := count + 1;
-       END IF;
+       clk <= '1';
+       WAIT FOR 14ns/2;
+       clk <= '0';
+       WAIT FOR 14ns/2;
+   END PROCESS clk_gen;
+   
+--   tb: PROCESS(clk) IS
+--    VARIABLE   count : INTEGER := 0;
+--   BEGIN
+--       IF rising_edge(clk) THEN
+--           IF count = 0 THEN
+--              initAddress <= '1';
+--              initSum <= '1';
+--           ELSIF count = 1 THEN
+--               initAddress <= '1';
+--               initSum <= '1';
+--               loadShift <= '1';
+--           ELSIF (count > 1 AND processingDone = '0')  THEN
+--              incrAddress <= '1';
+--              loadSum <= '1';
+--           ELSIF (processingDone = '1')  THEN
+--                 loadOutput <= '1';
+--           END IF;
+--          count := count + 1;
+--       END IF;
        
-   END PROCESS tb;
+--   END PROCESS tb;
    
 END testbench;

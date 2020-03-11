@@ -32,9 +32,9 @@ USE IEEE.NUMERIC_STD.ALL;
 ENTITY TOP_Op IS
 
 	GENERIC (
-		CONSTANT selector_width : INTEGER := 4;
+		CONSTANT selector_width : INTEGER := 2;
 		N : INTEGER := 24;
-		n_out : INTEGER := 24;
+		n_out : INTEGER := 48;
 		
 		address_width : INTEGER := 7;
 		buffer_fir_width : INTEGER := 128;
@@ -62,7 +62,7 @@ signal s_v_value, s_h_coef : std_logic_vector(N - 1 DOWNTO 0);
 COMPONENT accumulator IS
 	GENERIC (
 		N : INTEGER := 24;
-		n_out : INTEGER := 24
+		n_out : INTEGER := 48
 	);
 	PORT (
 		clk : IN std_logic;

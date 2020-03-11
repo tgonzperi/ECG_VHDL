@@ -49,7 +49,7 @@ ENTITY buffers IS
 		
 		processingDone : OUT std_logic;
 		address_output : OUT std_logic_vector(address_width - 1 DOWNTO 0);
-		v_value, h_coef : OUT std_logic_vector(N - 1 DOWNTO 0)
+		v_value, h_coef : OUT std_logic_vector(N - 1 DOWNTO 0) := (others => '0')
 	);
 END buffers;
 
@@ -57,18 +57,18 @@ ARCHITECTURE Behavioral OF buffers IS
 
 	TYPE t_buffer IS ARRAY (INTEGER RANGE <>) OF std_logic_vector(N - 1 DOWNTO 0);
 
-	SIGNAL buffer_fir : t_buffer(buffer_fir_width DOWNTO 0);
-	SIGNAL buffer_iir_r : t_buffer(buffer_iir_width DOWNTO 0);
-	SIGNAL buffer_iir : t_buffer(buffer_iir_width DOWNTO 0);
-	SIGNAL buffer_fir2 : t_buffer(buffer_fir2_width DOWNTO 0);
+	SIGNAL buffer_fir : t_buffer(buffer_fir_width DOWNTO 0) := (others => (others => '1'));
+	SIGNAL buffer_iir_r : t_buffer(buffer_iir_width DOWNTO 0) := (others => (others => '0'));
+	SIGNAL buffer_iir : t_buffer(buffer_iir_width DOWNTO 0) := (others => (others => '0'));
+	SIGNAL buffer_fir2 : t_buffer(buffer_fir2_width DOWNTO 0) := (others => (others => '0'));
 
-	SIGNAL buffer_fir_coef : t_buffer(buffer_fir_width DOWNTO 0);
-	SIGNAL buffer_iir_r_coef : t_buffer(buffer_iir_width DOWNTO 0);
-	SIGNAL buffer_iir_coef : t_buffer(buffer_iir_width DOWNTO 0);
-	SIGNAL buffer_fir2_coef : t_buffer(buffer_fir2_width DOWNTO 0);
+	SIGNAL buffer_fir_coef : t_buffer(buffer_fir_width DOWNTO 0) := (others => (others => '0'));
+	SIGNAL buffer_iir_r_coef : t_buffer(buffer_iir_width DOWNTO 0) := (others => (others => '0'));
+	SIGNAL buffer_iir_coef : t_buffer(buffer_iir_width DOWNTO 0) := (others => (others => '0'));
+	SIGNAL buffer_fir2_coef : t_buffer(buffer_fir2_width DOWNTO 0) := (others => (others => '0'));
  
-	SIGNAL s_address : unsigned(address_width - 1 DOWNTO 0);
- 
+	SIGNAL s_address : unsigned(address_width - 1 DOWNTO 0) := (others => '0');
+
     PROCEDURE shiftBuffer(
         buff : IN t_buffer;
         inputSample : IN std_logic_vector(N - 1 DOWNTO 0);
@@ -113,10 +113,10 @@ BEGIN
 	END PROCESS shifter;
 
 
-	buffer_selector : PROCESS (selector) IS
+	buffer_selector : PROCESS(selector, s_address) IS
 	BEGIN
 		IF (unsigned(selector) = 0) THEN
-			v_value <= buffer_fir(to_integer(s_address));
+			v_value <= buffer_fir(0);
 			h_coef <= buffer_fir_coef(to_integer(s_address));		
 		    IF (s_address = (buffer_fir_width - 1)) THEN
                 processingDone <= '1';

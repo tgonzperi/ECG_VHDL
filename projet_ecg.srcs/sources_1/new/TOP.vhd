@@ -33,7 +33,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity TOP is
   GENERIC (
-    CONSTANT selector_width : INTEGER := 4;
+    CONSTANT selector_width : INTEGER := 2;
     N : INTEGER := 24;
     n_out : INTEGER := 24;
 
@@ -55,7 +55,7 @@ architecture Behavioral of TOP is
   COMPONENT TOP_FIR_FSM IS
 
   GENERIC (
-    CONSTANT selector_width : INTEGER := 4;
+    CONSTANT selector_width : INTEGER := 2;
     N : INTEGER := 24;
     n_out : INTEGER := 24;
 
@@ -93,7 +93,7 @@ inst_FSM_Filtres : FSM_Filtres
   clk => clk,
   rst => rst,
   loadOutput => s_loadOutput,
-  filtres_done => filtres_done
+  filtres_done => s_filtres_done
   );
 
 inst_TOP_FIR_FSM : TOP_FIR_FSM
