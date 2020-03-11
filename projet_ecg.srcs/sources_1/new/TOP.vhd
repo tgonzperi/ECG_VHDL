@@ -47,7 +47,7 @@ entity TOP is
   inputSample : IN std_logic_vector(N - 1 downto 0);
   valid : IN std_logic;
 
-  OutputSamle : OUT std_logic_vector(n_out - 1 DOWNTO 0)
+  OutputSample : OUT std_logic_vector(n_out - 1 DOWNTO 0)
   );
 end TOP;
 
@@ -79,8 +79,10 @@ architecture Behavioral of TOP is
   	PORT (
   		clk, rst : IN std_logic;
   		loadOutput : IN std_logic;
-  		filtres_done : OUT std_logic
+  		filtres_done : OUT std_logic;
+      selector : OUT std_logic_vector(selector_width - 1 downto 0)
   	);
+    
   END COMPONENT;
 
   signal s_selector : std_logic_vector(selector_width - 1 downto 0);
@@ -102,7 +104,8 @@ inst_TOP_FIR_FSM : TOP_FIR_FSM
     rst => rst,
     selector => s_selector,
     valid => valid,
-    filtres_done => s_filtres_done
-  )
+    filtres_done => s_filtres_done,
+    accOutput => OutputSample
+  );
 
 end Behavioral;
