@@ -46,6 +46,7 @@ GENERIC (
 		selector : IN std_logic_vector(selector_width - 1 DOWNTO 0);
     valid, filtres_done : in std_logic;
 
+    loadOutput : OUT std_logic;
 		accOutput : OUT std_logic_vector(n_out - 1 DOWNTO 0)
 	);
 END TOP_FIR_FSM;
@@ -120,5 +121,5 @@ Inst_FSM_FIR : FSM_FIR
   initAddress => s_initAddress
 	);
 
-
+  loadOutput <= s_loadOutput;
 END Behavioral;
