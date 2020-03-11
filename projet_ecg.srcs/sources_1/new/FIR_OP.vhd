@@ -38,7 +38,6 @@ ENTITY accumulator IS
 		clk : IN std_logic;
 		initSum, loadSum, loadOutput : IN std_logic;
 		v_value, h_coef : IN std_logic_vector(N - 1 DOWNTO 0);
-		sumSelect : IN std_logic;
 
 		accOutput : OUT std_logic_vector(n_out - 1 DOWNTO 0)
 	);
@@ -62,8 +61,6 @@ BEGIN
 		ELSIF (RISING_EDGE(clk) AND loadSum = '1') THEN
 			IF (sumSelect = '0') THEN
 				buff <= buff + w_mult;
-			ELSE
-				buff <= buff - w_mult;
 			END IF;
 		END IF;
 	END PROCESS mux_sum;

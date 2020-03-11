@@ -45,6 +45,7 @@ GENERIC (
 		clk, rst : IN std_logic;
 		selector : IN std_logic_vector(selector_width - 1 DOWNTO 0);
     valid, filtres_done : in std_logic;
+    inputSample : std_logic_vector(N - 1 downto 0);
 
 		accOutput : OUT std_logic_vector(n_out - 1 DOWNTO 0)
 	);
@@ -67,6 +68,7 @@ GENERIC (
   clk : IN std_logic;
   incrAddress, initAddress : IN std_logic;
   selector : IN std_logic_vector(selector_width - 1 DOWNTO 0);
+  inputSample : std_logic_vector(N - 1 downto 0);
 
   initSum, loadSum, loadOutput : IN std_logic;
 
@@ -100,6 +102,7 @@ Inst_accu : TOP_Op
   incrAddress => s_incAddress,
   initAddress => s_initAddress,
   selector => selector,
+  inputSample => inputSample,
 
   processingDone => s_processingDone,
 	accOutput => accOutput
