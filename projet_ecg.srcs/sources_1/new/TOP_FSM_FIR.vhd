@@ -105,7 +105,7 @@ Inst_accu : TOP_Op
 	accOutput => accOutput
 	);
 
-Inst_buffers : FSM_FIR
+Inst_FSM_FIR : FSM_FIR
 	port map(
   clk => clk,
   rst => rst,

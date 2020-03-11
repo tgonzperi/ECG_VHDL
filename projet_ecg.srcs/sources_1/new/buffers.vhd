@@ -32,7 +32,7 @@ USE IEEE.NUMERIC_STD.ALL;
 ENTITY buffers IS
 
 	GENERIC (
-		CONSTANT selector_width : INTEGER := 4;
+		CONSTANT selector_width : INTEGER := 2;
  
 		N : INTEGER := 24;
 		address_width : INTEGER := 7;

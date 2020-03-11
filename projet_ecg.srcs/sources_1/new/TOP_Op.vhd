@@ -46,11 +46,12 @@ ENTITY TOP_Op IS
 		incrAddress, initAddress : IN std_logic;
 		selector : IN std_logic_vector(selector_width - 1 DOWNTO 0);
 
-		initSum, loadSum, loadOutput : IN std_logic;
+		initSum, loadSum, loadOutput, loadShift : IN std_logic;
 		sumSelect : IN std_logic;
 
 		processingDone : OUT std_logic;
-		accOutput : OUT std_logic_vector(n_out - 1 DOWNTO 0)
+		accOutput : OUT std_logic_vector(n_out - 1 DOWNTO 0);
+		inputSample : IN std_logic_vector(N - 1 DOWNTO 0)
 	);
 END TOP_Op;
 
@@ -75,7 +76,7 @@ END COMPONENT;
 
 COMPONENT buffers IS
 	GENERIC (
-		CONSTANT selector_width : INTEGER := 4;
+		CONSTANT selector_width : INTEGER := 2;
 
 		N : INTEGER := 24;
 		address_width : INTEGER := 7;
@@ -85,11 +86,13 @@ COMPONENT buffers IS
 	);
 	PORT (
 		clk : IN std_logic;
-		incrAddress, initAddress : IN std_logic;
+		incrAddress, initAddress, loadShift : IN std_logic;
 		selector : IN std_logic_vector(selector_width - 1 DOWNTO 0);
-
+    
 		processingDone : OUT std_logic;
-		v_value, h_coef : OUT std_logic_vector(N - 1 DOWNTO 0)
+		v_value, h_coef : OUT std_logic_vector(N - 1 DOWNTO 0);
+		inputSample : IN std_logic_vector(N - 1 DOWNTO 0)
+
 	);
 END COMPONENT;
 
@@ -114,10 +117,12 @@ Inst_buffers : buffers
 	clk => clk,
 	incrAddress => incrAddress,
 	initAddress => initAddress,
+	loadShift => loadShift,
 	selector => selector,
 	processingDone => processingDone,
 	v_value => s_v_value,
-	h_coef => s_h_coef
+	h_coef => s_h_coef,
+	inputSample => inputSample
 	);
 
 	

@@ -11,60 +11,110 @@ USE std.textio.ALL;
 USE IEEE.math_real.ALL;
 
 ENTITY tb_accumulator IS
+	GENERIC (
+        CONSTANT selector_width : INTEGER := 4;
+        N : INTEGER := 24;
+        n_out : INTEGER := 24;
+        
+        address_width : INTEGER := 7;
+        buffer_fir_width : INTEGER := 128;
+        buffer_iir_width : INTEGER := 3;
+        buffer_fir2_width : INTEGER := 109
+    );
 END tb_accumulator;
 
 ARCHITECTURE testbench OF tb_accumulator IS
-    CONSTANT N : INTEGER := 22;
-    CONSTANT N_OUT: INTEGER := 15;
-    CONSTANT clk_period : TIME := 1 ns;
 
-	SIGNAL clk:    std_logic := '0';
-	SIGNAL rst:    std_logic := '0';
+COMPONENT TOP_Op IS
+
+	GENERIC (
+		CONSTANT selector_width : INTEGER := 4;
+		N : INTEGER := 24;
+		n_out : INTEGER := 24;
+		address_width : INTEGER := 7;
+		buffer_fir_width : INTEGER := 128;
+		buffer_iir_width : INTEGER := 3;
+		buffer_fir2_width : INTEGER := 109
+	);
+	PORT (
+		clk : IN std_logic;
+		incrAddress, initAddress, loadShift : IN std_logic;
+		selector : IN std_logic_vector(selector_width - 1 DOWNTO 0);
+
+		initSum, loadSum, loadOutput : IN std_logic;
+		sumSelect : IN std_logic;
+
+		processingDone : OUT std_logic;
+		accOutput : OUT std_logic_vector(n_out - 1 DOWNTO 0);
+		inputSample : IN std_logic_vector(N - 1 DOWNTO 0)
+	);
+END COMPONENT;
+
+    SIGNAL clk: std_logic := '0';
+	SIGNAL incrAddress, initAddress, loadShift : std_logic;
+    SIGNAL selector : std_logic_vector(selector_width - 1 DOWNTO 0);
+
+    SIGNAL initSum, loadSum, loadOutput : std_logic;
+    SIGNAL sumSelect : std_logic;
+
+    SIGNAL processingDone : std_logic;
+    SIGNAL accOutput : std_logic_vector(n_out - 1 DOWNTO 0);
+    SIGNAL inputSample : std_logic_vector(N - 1 DOWNTO 0);
 
 BEGIN
-	uut : ENTITY work.accumulator
-        GENERIC MAP(
-            N => N,
-            n_out => N_OUT
-        )
+
+	uut : TOP_Op
         PORT MAP(
             clk => clk,
+            incrAddress => incrAddress,
+            initAddress => initAddress,
+            selector => selector,
+            
             initSum => initSum,
             loadSum => loadSum,
             loadOutput => loadOutput,
-            v_value => v_value,
-            h_coef => h_coef,
+            loadShift => loadShift,
+            
             sumSelect => sumSelect,
-            accOutput => accOutput
-        );
-        
-        clk_gen : PROCESS
-        BEGIN
-            clk <= '1';
-            WAIT FOR clk_period/2;
-            clk <= '0';
-            WAIT FOR clk_period/2;
-        END PROCESS clk_gen;
-        
-        rst_gen : PROCESS
-        BEGIN
-            rst <= '1';
-            WAIT FOR clk_period * 3.5;
-            rst <= '0';
-            WAIT;
-        END PROCESS rst_gen;
-        
-        angle_gen : PROCESS (clk, rst)
-                        VARIABLE   count : INTEGER := 0;
-        
-        BEGIN
-            IF rst = '1' THEN
-               angle <= (others => '0');
-            ELSIF rising_edge(clk) AND count < 5 THEN
-               angle  <= to_signed(integer(angle_array(count) * 2.0**22/MATH_2_PI), width); 
-               count := count + 1;
-            END IF;
-        
-        END PROCESS angle_gen;
 
+            processingDone => processingDone,
+            accOutput => accOutput,
+            inputSample => inputSample
+        );
+   
+   clk <= not clk after 7 ns;
+   incrAddress <= '0';
+   selector <= "00";
+  
+   loadShift <= '0';
+   initAddress <= '0';
+   incrAddress <= '0';
+   initSum <= '0';
+   loadSum <= '0';
+   loadOutput <= '0';
+   sumSelect <= '0';
+   inputSample <= std_logic_vector(to_unsigned(1, N));
+   
+   tb: PROCESS(clk) IS
+    VARIABLE   count : INTEGER := 0;
+   BEGIN
+       IF rising_edge(clk) THEN
+           IF count = 0 THEN
+              initAddress <= '1';
+              initSum <= '1';
+           ELSIF count = 1 THEN
+               initAddress <= '1';
+               initSum <= '1';
+               loadShift <= '1';
+           ELSIF (count > 1 AND processingDone = '0')  THEN
+              incrAddress <= '1';
+              loadSum <= '1';
+           ELSIF (processingDone = '1')  THEN
+                 loadOutput <= '1';
+           END IF;
+          count := count + 1;
+       END IF;
+       
+   END PROCESS tb;
+   
 END testbench;

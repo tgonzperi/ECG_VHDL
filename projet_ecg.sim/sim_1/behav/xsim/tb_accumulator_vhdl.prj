@@ -1,0 +1,9 @@
+# compile vhdl design source files
+vhdl xil_defaultlib  \
+"../../../../projet_ecg.srcs/sources_1/new/FIR_OP.vhd" \
+"../../../../projet_ecg.srcs/sources_1/new/TOP_Op.vhd" \
+"../../../../projet_ecg.srcs/sources_1/new/buffers.vhd" \
+"../../../../projet_ecg.srcs/sim_1/new/tb_accumulator.vhd" \
+
+# Do not sort compile order
+nosort
