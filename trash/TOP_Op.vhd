@@ -70,16 +70,6 @@ COMPONENT accumulator IS
 	);
 END COMPONENT;
 
-GENERIC (
-	CONSTANT selector_width : INTEGER := 4;
-
-	N : INTEGER := 24;
-	address_width : INTEGER := 7;
-	buffer_fir_width : INTEGER := 128;
-	buffer_iir_width : INTEGER := 3;
-	buffer_fir2_width : INTEGER := 109
-);
-
 COMPONENT buffers IS
 
 	GENERIC (
@@ -127,5 +117,5 @@ Inst_buffers : buffers
 	h_coef => s_h_coef
 	);
 
-	
+
 END Behavioral;
