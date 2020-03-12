@@ -59,9 +59,7 @@ BEGIN
 		IF (initSum = '1') THEN
 			buff <= (OTHERS => '0');
 		ELSIF (RISING_EDGE(clk) AND loadSum = '1') THEN
-			IF (sumSelect = '0') THEN
-				buff <= buff + w_mult;
-			END IF;
+			buff <= buff + w_mult;
 		END IF;
 	END PROCESS mux_sum;
 

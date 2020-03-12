@@ -57,6 +57,7 @@ END TOP_Op;
 ARCHITECTURE Behavioral OF TOP_Op IS
 
 signal s_v_value, s_h_coef : std_logic_vector(N - 1 DOWNTO 0);
+signal s_accOutput : std_logic_vector(n_out - 1 DOWNTO 0);
 
 COMPONENT accumulator IS
 	GENERIC (
@@ -77,6 +78,7 @@ COMPONENT buffers IS
 		CONSTANT selector_width : INTEGER := 2;
 
 		N : INTEGER := 24;
+		n_out : INTEGER := 48;
 		address_width : INTEGER := 7;
 		buffer_fir_width : INTEGER := 128;
 		buffer_iir_width : INTEGER := 3;
@@ -86,6 +88,7 @@ COMPONENT buffers IS
 		clk : IN std_logic;
 		incrAddress, initAddress, loadShift : IN std_logic;
 		selector : IN std_logic_vector(selector_width - 1 DOWNTO 0);
+		accOutput : IN std_logic_vector(n_out - 1 DOWNTO 0);
 
 		processingDone : OUT std_logic;
 		v_value, h_coef : OUT std_logic_vector(N - 1 DOWNTO 0);
@@ -103,7 +106,7 @@ Inst_accu : accumulator
 	loadSum => loadSum,
 	loadOutput => loadOutput,
 
-	accOutput => accOutput,
+	accOutput => s_accOutput,
 
 	v_value => s_v_value,
 	h_coef => s_h_coef
@@ -119,8 +122,10 @@ Inst_buffers : buffers
 	processingDone => processingDone,
 	v_value => s_v_value,
 	h_coef => s_h_coef,
-	inputSample => inputSample
+	inputSample => inputSample,
+	accOutput => s_accOutput
 	);
 
+accOutput <= s_accOutput;
 
 END Behavioral;
