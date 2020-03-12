@@ -57,7 +57,7 @@ architecture Behavioral of TOP is
   GENERIC (
     CONSTANT selector_width : INTEGER := 2;
     N : INTEGER := 24;
-    n_out : INTEGER := 24;
+    n_out : INTEGER := 48;
 
     address_width : INTEGER := 7;
     buffer_fir_width : INTEGER := 128;
@@ -80,14 +80,17 @@ architecture Behavioral of TOP is
   		clk, rst : IN std_logic;
   		loadOutput : IN std_logic;
   		filtres_done : OUT std_logic;
+      OutputValid : OUT std_logic;
       selector : OUT std_logic_vector(selector_width - 1 downto 0)
   	);
-    
+
   END COMPONENT;
 
   signal s_selector : std_logic_vector(selector_width - 1 downto 0);
   signal s_filtres_done : std_logic;
   signal s_loadOutput : std_logic;
+  signal s_OutputValid : std_logic;
+  signal s_OutputSample : std_logic_vector(n_out - 1 downto 0);
 begin
 
 inst_FSM_Filtres : FSM_Filtres
@@ -95,7 +98,9 @@ inst_FSM_Filtres : FSM_Filtres
   clk => clk,
   rst => rst,
   loadOutput => s_loadOutput,
-  filtres_done => s_filtres_done
+  filtres_done => s_filtres_done,
+  selector => s_selector,
+  OutputValid => s_OutputValid
   );
 
 inst_TOP_FIR_FSM : TOP_FIR_FSM
@@ -105,7 +110,9 @@ inst_TOP_FIR_FSM : TOP_FIR_FSM
     selector => s_selector,
     valid => valid,
     filtres_done => s_filtres_done,
-    accOutput => OutputSample
+    accOutput => s_OutputSample
   );
+
+  OutputSample <= s_OutputSample when (RISING_EDGE(clk) and s_OutputValid = '1');
 
 end Behavioral;

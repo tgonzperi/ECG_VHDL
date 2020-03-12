@@ -46,7 +46,7 @@ ENTITY buffers IS
 		incrAddress, initAddress : IN std_logic;
 		inputSample : IN std_logic_vector(N - 1 DOWNTO 0);
 		loadShift : IN std_logic;
-		selector : IN std_logic_vector(selector_width - 1 DOWNTO 0);
+		selector : IN std_logic_vector(2 - 1 DOWNTO 0);
 		accOutput : IN std_logic_vector(n_out - 1 DOWNTO 0);
 
 		processingDone : OUT std_logic;
@@ -81,7 +81,6 @@ ARCHITECTURE Behavioral OF buffers IS
             v_buffer(i+1) := v_buffer(i);
         END LOOP;
         v_buffer(0) := inputSampleIn;
-				--report "hola " & integer'image(to_integer(signed(v_buffer(4))));
         return v_buffer;
     END FUNCTION;
 
@@ -90,10 +89,12 @@ BEGIN
 
 	address_generator : PROCESS (clk) IS
 	BEGIN
-		IF (initAddress = '1') THEN
-			s_address <= (OTHERS => '0');
-		ELSIF (RISING_EDGE(clk) AND incrAddress = '1') THEN
-			s_address <= s_address + 1;
+		IF (RISING_EDGE(clk)) THEN
+			IF (initAddress = '1') THEN
+				s_address <= (OTHERS => '0');
+			ELSIF (incrAddress = '1') THEN
+				s_address <= s_address + 1;
+			END IF;
 		END IF;
 
 	END PROCESS address_generator;
@@ -119,40 +120,59 @@ BEGIN
 	END PROCESS shifter;
 
 	hh : for i in 0 to (buffer_fir_width - 1) generate
-	 	buffer_fir_coef(i)(0) <= '1';
+	 	buffer_fir_coef(i)(1) <= '1';
 	end generate;
 
 
-	buffer_selector : PROCESS(selector, s_address, loadShift) IS
-	BEGIN
-		processingDone <= '0';
-		IF (unsigned(selector) = 0) THEN
-			v_value <= buffer_fir(to_integer(s_address));
-			h_coef <= buffer_fir_coef(to_integer(s_address));
-		    IF (s_address = (buffer_fir_width - 1)) THEN
-                processingDone <= '1';
-            END IF;
-		ELSIF (unsigned(selector) = 1) THEN
-			v_value <= buffer_iir_r(to_integer(s_address));
-			h_coef <= buffer_iir_r_coef(to_integer(s_address));
-		    IF (s_address = (buffer_iir_width - 1)) THEN
-                processingDone <= '1';
-            END IF;
-		ELSIF (unsigned(selector) = 2) THEN
-			v_value <= buffer_iir(to_integer(s_address));
-			h_coef <= buffer_iir_coef(to_integer(s_address));
-		    IF (s_address = (buffer_iir_width - 1)) THEN
-                processingDone <= '1';
-            END IF;
-		ELSIF (unsigned(selector) = 3) THEN
-			v_value <= buffer_fir2(to_integer(s_address));
-			h_coef <= buffer_fir2_coef(to_integer(s_address));
-		    IF (s_address = (buffer_fir2_width - 1)) THEN
-                processingDone <= '1';
-            END IF;
-		END IF;
-	END PROCESS buffer_selector;
+	-- buffer_selector : PROCESS(selector, s_address)
+	-- BEGIN
+	-- 	-- processingDone <= '0';
+	-- 	IF (unsigned(selector) = 0) THEN
+	-- 		v_value <= buffer_fir(to_integer(s_address));
+	-- 		h_coef <= buffer_fir_coef(to_integer(s_address));
+	-- 	    -- IF (s_address = (buffer_fir_width - 1)) THEN
+  --       --         processingDone <= '1';
+  --       --     END IF;
+	-- 	ELSIF (unsigned(selector) = 1) THEN
+	-- 		v_value <= buffer_iir_r(to_integer(s_address));
+	-- 		h_coef <= buffer_iir_r_coef(to_integer(s_address));
+	-- 	    -- IF (s_address = (buffer_iir_width - 1)) THEN
+  --       --         processingDone <= '1';
+  --       --     END IF;
+	-- 	ELSIF (unsigned(selector) = 2) THEN
+	-- 		v_value <= buffer_iir(to_integer(s_address));
+	-- 		h_coef <= buffer_iir_coef(to_integer(s_address));
+	-- 	    -- IF (s_address = (buffer_iir_width - 1)) THEN
+  --       --         processingDone <= '1';
+  --       --     END IF;
+	-- 	ELSIF (unsigned(selector) = 3) THEN
+	-- 		v_value <= buffer_fir2(to_integer(s_address));
+	-- 		h_coef <= buffer_fir2_coef(to_integer(s_address));
+	-- 	    -- IF (s_address = (buffer_fir2_width - 1)) THEN
+  --       --         processingDone <= '1';
+  --       --     END IF;
+	-- 	END IF;
+	-- END PROCESS buffer_selector;
 
 	address_output <= std_logic_vector(s_address);
+	processingDone <= '1' when 	((unsigned(selector) = 0) AND (s_address = (buffer_fir_width - 1))) OR
+															((unsigned(selector) = 1) AND (s_address = (buffer_iir_width - 1))) OR
+															((unsigned(selector) = 2) AND (s_address = (buffer_iir_width - 1))) OR
+															((unsigned(selector) = 3) AND (s_address = (buffer_fir2_width - 1))) else
+										'0';
+
+	with selector select v_value <=
+		buffer_fir(to_integer(s_address)) 	when "00",
+		buffer_iir_r(to_integer(s_address))	when "01",
+		buffer_iir(to_integer(s_address))		when "10",
+		buffer_fir2(to_integer(s_address))	when "11",
+		(others => '0')											when others;
+
+		with selector select h_coef <=
+			buffer_fir_coef(to_integer(s_address)) 		when "00",
+			buffer_iir_r_coef(to_integer(s_address))	when "01",
+			buffer_iir_coef(to_integer(s_address))		when "10",
+			buffer_fir2_coef(to_integer(s_address))		when "11",
+			(others => '0')														when others;
 
 END Behavioral;

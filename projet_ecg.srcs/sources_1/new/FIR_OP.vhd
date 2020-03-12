@@ -56,10 +56,12 @@ BEGIN
 
 	mux_sum : PROCESS (clk) IS
 	BEGIN
-		IF (initSum = '1') THEN
-			buff <= (OTHERS => '0');
-		ELSIF (RISING_EDGE(clk) AND loadSum = '1') THEN
-			buff <= buff + w_mult;
+		IF (RISING_EDGE(clk)) THEN
+			IF (initSum = '1') THEN
+				buff <= (OTHERS => '0');
+			ELSIF (loadSum = '1') THEN
+				buff <= buff + w_mult;
+			END IF;
 		END IF;
 	END PROCESS mux_sum;
 
