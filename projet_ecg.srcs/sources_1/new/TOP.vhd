@@ -35,12 +35,12 @@ entity TOP is
   GENERIC (
     CONSTANT selector_width : INTEGER := 2;
     N : INTEGER := 24;
-    n_out : INTEGER := 24;
+    n_out : INTEGER := 48;
 
     address_width : INTEGER := 7;
-    buffer_fir_width : INTEGER := 128;
+    buffer_fir_width : INTEGER := 129;
     buffer_iir_width : INTEGER := 3;
-    buffer_fir2_width : INTEGER := 109
+    buffer_fir2_width : INTEGER := 11
   );
   PORT(
   clk, rst : IN std_logic;
@@ -57,20 +57,21 @@ architecture Behavioral of TOP is
   GENERIC (
     CONSTANT selector_width : INTEGER := 2;
     N : INTEGER := 24;
-    n_out : INTEGER := 48;
+    n_out : INTEGER;
 
     address_width : INTEGER := 7;
-    buffer_fir_width : INTEGER := 128;
+    buffer_fir_width : INTEGER := 129;
     buffer_iir_width : INTEGER := 3;
-    buffer_fir2_width : INTEGER := 109
+    buffer_fir2_width : INTEGER := 11
   );
   	PORT (
-  		clk, rst : IN std_logic;
-  		selector : IN std_logic_vector(selector_width - 1 DOWNTO 0);
-      valid, filtres_done : in std_logic;
+    clk, rst : IN std_logic;
+		selector : IN std_logic_vector(selector_width - 1 DOWNTO 0);
+    valid, filtres_done, OutRecursive : in std_logic;
+    inputSample : in std_logic_vector(N - 1 downto 0);
 
-      loadOutput : OUT std_logic;
-  		accOutput : OUT std_logic_vector(n_out - 1 DOWNTO 0)
+    loadOutput : OUT std_logic;
+		accOutput : OUT std_logic_vector(n_out - 1 DOWNTO 0)
   	);
   END COMPONENT;
 
@@ -79,7 +80,7 @@ architecture Behavioral of TOP is
   	PORT (
   		clk, rst : IN std_logic;
   		loadOutput : IN std_logic;
-  		filtres_done : OUT std_logic;
+  		filtres_done, OutRecursive : OUT std_logic;
       OutputValid : OUT std_logic;
       selector : OUT std_logic_vector(selector_width - 1 downto 0)
   	);
@@ -87,7 +88,7 @@ architecture Behavioral of TOP is
   END COMPONENT;
 
   signal s_selector : std_logic_vector(selector_width - 1 downto 0);
-  signal s_filtres_done : std_logic;
+  signal s_filtres_done, s_OutRecursive : std_logic;
   signal s_loadOutput : std_logic;
   signal s_OutputValid : std_logic;
   signal s_OutputSample : std_logic_vector(n_out - 1 downto 0);
@@ -99,17 +100,31 @@ inst_FSM_Filtres : FSM_Filtres
   rst => rst,
   loadOutput => s_loadOutput,
   filtres_done => s_filtres_done,
+  OutRecursive => s_OutRecursive,
   selector => s_selector,
   OutputValid => s_OutputValid
   );
 
 inst_TOP_FIR_FSM : TOP_FIR_FSM
+generic map(
+
+N => N,
+n_out => n_out,
+
+address_width => address_width,
+buffer_fir_width => buffer_fir_width,
+buffer_iir_width => buffer_iir_width,
+buffer_fir2_width => buffer_fir2_width
+)
   port map(
     clk => clk,
     rst => rst,
     selector => s_selector,
+    inputSample => inputSample,
+    loadOutput => s_loadOutput,
     valid => valid,
     filtres_done => s_filtres_done,
+    OutRecursive => s_OutRecursive,
     accOutput => s_OutputSample
   );
 

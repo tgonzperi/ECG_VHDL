@@ -34,12 +34,12 @@ ENTITY TOP_Op IS
 	GENERIC (
 		CONSTANT selector_width : INTEGER := 2;
 		N : INTEGER := 24;
-		n_out : INTEGER := 48;
+		n_out : INTEGER := 24;
 
 		address_width : INTEGER := 7;
-		buffer_fir_width : INTEGER := 128;
+		buffer_fir_width : INTEGER := 129;
 		buffer_iir_width : INTEGER := 3;
-		buffer_fir2_width : INTEGER := 109
+		buffer_fir2_width : INTEGER := 11
 	);
 	PORT (
 		clk : IN std_logic;
@@ -62,7 +62,7 @@ signal s_accOutput : std_logic_vector(n_out - 1 DOWNTO 0);
 COMPONENT accumulator IS
 	GENERIC (
 		N : INTEGER := 24;
-		n_out : INTEGER := 48
+		n_out : INTEGER := 24
 	);
 	PORT (
 		clk : IN std_logic;
@@ -78,11 +78,11 @@ COMPONENT buffers IS
 		CONSTANT selector_width : INTEGER := 2;
 
 		N : INTEGER := 24;
-		n_out : INTEGER := 48;
+		n_out : INTEGER := 24;
 		address_width : INTEGER := 7;
-		buffer_fir_width : INTEGER := 128;
+		buffer_fir_width : INTEGER := 129;
 		buffer_iir_width : INTEGER := 3;
-		buffer_fir2_width : INTEGER := 109
+		buffer_fir2_width : INTEGER := 11
 	);
 	PORT (
 		clk : IN std_logic;
@@ -100,6 +100,10 @@ END COMPONENT;
 BEGIN
 
 Inst_accu : accumulator
+generic map(
+N => N,
+n_out => n_out
+)
 	port map(
 	clk => clk,
 	initSum => initSum,
@@ -113,6 +117,16 @@ Inst_accu : accumulator
 	);
 
 Inst_buffers : buffers
+generic map(
+
+N => N,
+n_out => n_out,
+
+address_width => address_width,
+buffer_fir_width => buffer_fir_width,
+buffer_iir_width => buffer_iir_width,
+buffer_fir2_width => buffer_fir2_width
+)
 	port map(
 	clk => clk,
 	incrAddress => incrAddress,

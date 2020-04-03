@@ -45,11 +45,25 @@ END accumulator;
 
 ARCHITECTURE Behavioral OF accumulator IS
 
-	--type v_fir_first is ARRAY(0 to 128) of std_logic_vector(N-1 downto 0);
-	--type v_fir_second is ARRAY(0 to 10) of std_logic_vector(N-1 downto 0);
-	--type v_iir_no_recursive is ARRAY(0 to 2) of std_logic_vector(N-1 downto 0);
-	--type v_iir_recursive is ARRAY(0 to 2) of std_logic_vector(N-1 downto 0);
-	SIGNAL buff, w_mult : signed(n_out - 1 DOWNTO 0);
+
+
+	function round_signed (
+		constant output_size : natural;
+		input                : signed)
+		return signed is
+		variable result : signed(output_size -1 downto 0);
+	begin
+		if input(input'length-output_size-1) = '1' then
+			result := input(input'length-1 downto input'length-output_size) + 1;
+		else
+			result := input(input'length-1 downto input'length-output_size);
+		end if;
+		--VHDL 2008:
+		--result := input(input'length-1 downto input'length-output_size) + 1 when input(input'length-output_size-1)='1' else input(input'length-1 downto input'length-output_size);
+		return result;
+	end round_signed;
+
+	SIGNAL buff, w_mult : signed(2*N - 1 DOWNTO 0);
 
 BEGIN
 	w_mult <= (signed(v_value) * signed(h_coef));
@@ -65,6 +79,6 @@ BEGIN
 		END IF;
 	END PROCESS mux_sum;
 
-	accOutput <= std_logic_vector(buff) WHEN (RISING_EDGE(clk) AND loadOutput = '1');
+		accOutput <= std_logic_vector(resize(round_signed(N+2,buff),N)) WHEN (RISING_EDGE(clk) AND loadOutput = '1');
 
 END Behavioral;

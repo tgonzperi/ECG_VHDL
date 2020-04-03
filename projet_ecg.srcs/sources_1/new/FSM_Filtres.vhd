@@ -9,7 +9,7 @@ ENTITY FSM_Filtres IS
 	PORT (
 		clk, rst : IN std_logic;
 		loadOutput : IN std_logic;
-		filtres_done : OUT std_logic;
+		filtres_done, OutRecursive : OUT std_logic;
 		selector 		: OUT std_logic_vector(selector_width - 1 downto 0);
 		OutputValid : OUT std_logic
 	);
@@ -20,7 +20,6 @@ ARCHITECTURE arch_FSM_Filtres OF FSM_Filtres IS
 	TYPE FSM_state IS (FIR1, IIR_R, IIR, FIR2);
 
 	SIGNAL current_state, next_state : FSM_state := FIR1;
-	SIGNAL aux_selADDSUB : std_logic_vector(1 DOWNTO 0);
 BEGIN
 	curr_state : PROCESS (clk, rst) IS
 	BEGIN
@@ -35,6 +34,7 @@ BEGIN
 	BEGIN
 		filtres_done <= '0';
 		OutputValid <= '0';
+		OutRecursive <= '0';
 
 		CASE current_state IS
 			WHEN FIR1 =>
@@ -47,6 +47,7 @@ BEGIN
 
 			WHEN IIR_R =>
 				selector <= "01";
+				OutRecursive <= '1';
 				IF loadOutput = '1' THEN
 					next_state <= IIR;
 				ELSE
@@ -58,7 +59,6 @@ BEGIN
 				IF loadOutput = '1' THEN
 					next_state <= FIR2;
 				ELSE
-				selector <= "00";
 					next_state <= IIR;
 				END IF;
 			WHEN FIR2 =>

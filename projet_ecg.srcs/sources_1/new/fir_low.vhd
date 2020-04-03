@@ -7,7 +7,7 @@ ENTITY FSM_FIR IS
 	PORT (
 		clk, rst : IN std_logic;
 		valid, processingDone : IN std_logic;
-		filtres_done : IN std_logic;
+		filtres_done, OutRecursive : IN std_logic;
 		loadShift, initAddress, incAddress, initSum, loadSum, loadOutput : OUT std_logic
 	);
 END FSM_FIR;
@@ -57,15 +57,18 @@ BEGIN
 				IF processingDone = '0' THEN
 					incAddress <= '1';
 					loadSum <= '1';
-					next_state <= PROCESSING_LOOP;
 				ELSE
 					next_state <= OUTPUT;
+					initAddress <= '1';
 				END IF;
 
 			WHEN OUTPUT =>
 				loadOutput <= '1';
+				initAddress <= '1';
 				IF (filtres_done = '1') THEN
 					next_state <= WAIT_END_SAMPLE;
+				ELSIF (OutRecursive = '1') THEN
+						next_state <= PROCESSING_LOOP;
 				ELSE
 					next_state <= STORE;
 				END IF;
